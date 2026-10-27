@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Badak Menyeruduk</title>
+<style>
+:root {
+  --bg: #ece9e4;
+  --panel: #f7f5f1;
+  --ink: #232323;
+  --muted: #6a655d;
+  --line: #d6d1c8;
+  --skin: #8b8f96;
+  --skin-dark: #6c7078;
+  --belly: #a9adb4;
+  --horn: #d9d2c0;
+  --floor: #ddd5c6;
+  --dust: #b9ac96;
+  --accent: #b5532c;
+  --accent-ink: #ffffff;
+  --font-display: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17161a; --panel: #211f25; --ink: #ece8e2; --muted: #a39d94; --line: #34313a;
+    --skin: #9a9ea6; --skin-dark: #7b7f88; --belly: #b6bac2; --horn: #e2dac6; --floor: #2c2a30;
+    --dust: #8d8372; --accent: #ec9060; --accent-ink: #1a1210;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding: 28px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(40px, 8vw, 80px); line-height: .98; margin: 6px 0 8px; letter-spacing: -.03em; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+.status { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+
+.stage {
+  position: relative; height: 320px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px;
+  background: linear-gradient(to bottom, var(--panel) 0 78%, var(--floor) 78% 100%);
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.stage::after { content: ""; position: absolute; left: 0; right: 0; top: 78%; height: 2px; background: var(--line); }
+.hint { position: absolute; left: 14px; top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.runner { position: absolute; left: 0; bottom: 54px; transform-origin: 50% 100%; will-change: transform; }
+.runner svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.shadow { position: absolute; bottom: 46px; left: 0; height: 14px; border-radius: 50%; background: var(--ink); opacity: .16; }
+.dust { position: absolute; bottom: 52px; width: 26px; height: 26px; border-radius: 50%; background: var(--dust); opacity: 0; pointer-events: none; }
+
+.leg { transform-box: fill-box; transform-origin: 50% 0; }
+.head { transform-origin: 200px 100px; }
+.ear { transform-box: fill-box; transform-origin: 50% 100%; animation: ear 2.8s ease-in-out infinite; }
+.tail { transform-origin: 56px 88px; animation: sway 1.8s ease-in-out infinite; }
+.bodybob { transform-box: fill-box; transform-origin: center bottom; }
+.walk .bodybob { animation: bob .8s ease-in-out infinite; }
+.walk .leg.a { animation: step .8s ease-in-out infinite; }
+.walk .leg.b { animation: step .8s ease-in-out infinite reverse; }
+.charge .bodybob { animation: bob .22s ease-in-out infinite; }
+.charge .leg.a { animation: step .22s ease-in-out infinite; }
+.charge .leg.b { animation: step .22s ease-in-out infinite reverse; }
+.charge .tail { animation-duration: .25s; }
+.paused .ear, .paused .tail, .paused .bodybob, .paused .leg { animation-play-state: paused; }
+@keyframes ear { 0%,80%,100% { transform: rotate(0); } 86% { transform: rotate(-14deg); } 92% { transform: rotate(6deg); } }
+@keyframes sway { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg); } }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes step { 0%,100% { transform: rotate(-16deg); } 50% { transform: rotate(16deg); } }
+
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--accent); }
+.readouts { display: flex; flex-wrap: wrap; gap: 6px 26px; font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.readouts b { color: var(--ink); font-weight: 600; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button {
+  font: 600 15px var(--font-body); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 16px; cursor: pointer; min-height: 44px;
+}
+button:hover { border-color: var(--muted); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.vol { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.vol input { width: 120px; accent-color: var(--accent); }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.step { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.step .tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.step h2 { font-size: 18px; margin: 2px 0 4px; font-family: var(--font-display); }
+.step p { margin: 0; font-size: 14px; color: var(--muted); }
+footer { font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Proyek Sistem Multimedia · Razan Disityu</div>
+    <h1>Badak Menyeruduk</h1>
+    <p class="lede">Badak berjalan pelan, berhenti untuk mendengus, lalu menyeruduk ke depan. Ketuk badak atau panggung untuk memutar ulang animasi dan suaranya.</p>
+  </header>
+
+  <div class="status" id="status" aria-live="polite">Badak sedang berjalan</div>
+
+  <div class="stage" id="stage" aria-label="Panggung animasi badak menyeruduk">
+    <div class="hint">ketuk untuk memutar ulang</div>
+    <div class="dust" id="d1"></div><div class="dust" id="d2"></div><div class="dust" id="d3"></div>
+    <div class="shadow" id="shadow"></div>
+    <div class="runner" id="runner" role="img" aria-label="Badak abu-abu bercula berjalan lalu menyeruduk">
+      <svg viewBox="0 0 320 180">
+        <path class="tail" d="M58 86 C40 90 34 104 38 124" fill="none" stroke="var(--skin-dark)" stroke-width="6" stroke-linecap="round"/>
+        <g class="bodybob">
+          <rect class="leg b" x="82" y="120" width="30" height="46" rx="10" fill="var(--skin-dark)"/>
+          <rect class="leg a" x="184" y="120" width="30" height="46" rx="10" fill="var(--skin-dark)"/>
+          <ellipse cx="150" cy="92" rx="100" ry="54" fill="var(--skin)"/>
+          <path d="M92 118 Q150 150 214 118" fill="var(--belly)" opacity=".55"/>
+          <path d="M120 52 Q116 90 124 130" fill="none" stroke="var(--skin-dark)" stroke-width="3" opacity=".6"/>
+          <path d="M196 56 Q202 92 194 128" fill="none" stroke="var(--skin-dark)" stroke-width="3" opacity=".6"/>
+          <rect class="leg a" x="106" y="124" width="30" height="46" rx="10" fill="var(--skin)"/>
+          <rect class="leg b" x="212" y="124" width="30" height="46" rx="10" fill="var(--skin)"/>
+          <g class="head" id="head">
+            <path d="M196 70 Q250 60 292 104 Q298 124 276 130 Q230 142 202 126 Z" fill="var(--skin)"/>
+            <path d="M262 86 Q282 52 308 40 Q300 76 292 100 Z" fill="var(--horn)" stroke="var(--skin-dark)" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M240 78 Q252 60 266 56 Q262 74 258 86 Z" fill="var(--horn)" stroke="var(--skin-dark)" stroke-width="1.5" stroke-linejoin="round"/>
+            <g class="ear"><path d="M212 74 Q206 48 224 44 Q230 62 226 80 Z" fill="var(--skin-dark)"/></g>
+            <circle cx="248" cy="100" r="5" fill="var(--ink)"/>
+            <circle cx="249.5" cy="98.5" r="1.5" fill="#fff"/>
+            <ellipse cx="288" cy="116" rx="3.5" ry="5" fill="var(--ink)" opacity=".7"/>
+            <path d="M232 128 Q258 138 280 128" fill="none" stroke="var(--skin-dark)" stroke-width="2.5" stroke-linecap="round"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="bar" aria-hidden="true"><i id="prog"></i></div>
+  <div class="readouts">
+    <span>waktu <b id="rtime">0.0 dtk</b></span>
+    <span>kecepatan <b id="rspeed">0 km/jam</b></span>
+    <span>sepanjang animasi <b>5.6 dtk</b></span>
+  </div>
+
+  <div class="controls">
+    <button id="bSound">Aktifkan suara</button>
+    <button id="bReplay">Putar ulang</button>
+    <button id="bPause">Jeda</button>
+    <button id="bLoop" class="on" aria-pressed="true">Ulangi otomatis</button>
+    <label class="vol">Volume <input id="volume" type="range" min="0" max="100" value="70" aria-label="Volume"></label>
+  </div>
+
+  <section class="steps" aria-label="Tiga proses multimedia">
+    <div class="step"><div class="tag">Gambar</div><h2>Visual badak</h2><p>Ilustrasi vektor SVG: badan besar berlipat kulit, dua cula, telinga, mata kecil, dan empat kaki tebal.</p></div>
+    <div class="step"><div class="tag">Suara</div><h2>Dengus dan geraman</h2><p>Dibuat langsung oleh browser: injakan kaki, dengusan keras lewat hidung, dan geraman rendah saat menyeruduk.</p></div>
+    <div class="step"><div class="tag">Gerak</div><h2>Berjalan lalu menyeruduk</h2><p>Berjalan pelan, kepala menunduk saat mendengus, lalu berlari kencang disertai debu, dan berhenti.</p></div>
+  </section>
+
+  <footer><span>Dibuat oleh Razan Disityu</span><span>Hewan: badak</span><span>Gambar · Suara · Gerak</span></footer>
+</div>
+
+<script>
+(function () {
+  var T = 5.6;
+  var stage = document.getElementById('stage');
+  var runner = document.getElementById('runner');
+  var shadow = document.getElementById('shadow');
+  var head = document.getElementById('head');
+  var statusEl = document.getElementById('status');
+  var prog = document.getElementById('prog');
+  var rtime = document.getElementById('rtime');
+  var rspeed = document.getElementById('rspeed');
+  var bSound = document.getElementById('bSound');
+  var bPause = document.getElementById('bPause');
+  var bLoop = document.getElementById('bLoop');
+  var volume = document.getElementById('volume');
+  var dusts = [document.getElementById('d1'), document.getElementById('d2'), document.getElementById('d3')];
+
+  var t = 0, last = null, playing = true, loop = true, soundOn = false, restartAt = null;
+  var ac = null, master = null, noiseBuf = null;
+  var W = 0, rw = 0, rh = 0, x0 = 0, xs = 0, xe = 0;
+
+  function layout() {
+    W = stage.clientWidth;
+    rw = Math.max(170, Math.min(300, Math.round(W * 0.34)));
+    rh = Math.round(rw * 180 / 320);
+    runner.style.width = rw + 'px';
+    runner.style.height = rh + 'px';
+    shadow.style.width = Math.round(rw * 0.8) + 'px';
+    x0 = 8;
+    xe = W - rw - 8;
+    xs = x0 + (xe - x0) * 0.38;
+  }
+
+  /* ---------- audio ---------- */
+  function ensureAudio() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    if (!ac) {
+      ac = new AC();
+      master = ac.createGain();
+      master.gain.value = volume.value / 100 * 0.7;
+      master.connect(ac.destination);
+      noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.6), ac.sampleRate);
+      var d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return true;
+  }
+  function thud(vol) {
+    if (!soundOn || !ac) return;
+    var tt = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(130, tt);
+    o.frequency.exponentialRampToValueAtTime(42, tt + 0.16);
+    g.gain.setValueAtTime(0.0001, tt);
+    g.gain.exponentialRampToValueAtTime(vol, tt + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.22);
+    o.connect(g); g.connect(master);
+    o.start(tt); o.stop(tt + 0.25);
+    var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g2 = ac.createGain();
+    s.buffer = noiseBuf; f.type = 'lowpass'; f.frequency.value = 500;
+    g2.gain.setValueAtTime(vol * 0.5, tt);
+    g2.gain.exponentialRampToValueAtTime(0.0001, tt + 0.1);
+    s.connect(f); f.connect(g2); g2.connect(master);
+    s.start(tt); s.stop(tt + 0.12);
+  }
+  function snort() {
+    if (!soundOn || !ac) return;
+    var tt = ac.currentTime;
+    var s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = 1.2;
+    f.frequency.setValueAtTime(1500, tt);
+    f.frequency.exponentialRampToValueAtTime(350, tt + 0.4);
+    g.gain.setValueAtTime(0.0001, tt);
+    g.gain.exponentialRampToValueAtTime(1.1, tt + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.42);
+    s.connect(f); f.connect(g); g.connect(master);
+    s.start(tt); s.stop(tt + 0.5);
+    var o = ac.createOscillator(), og = ac.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(95, tt);
+    o.frequency.exponentialRampToValueAtTime(60, tt + 0.35);
+    og.gain.setValueAtTime(0.0001, tt);
+    og.gain.exponentialRampToValueAtTime(0.25, tt + 0.04);
+    og.gain.exponentialRampToValueAtTime(0.0001, tt + 0.38);
+    var lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 300;
+    o.connect(lp); lp.connect(og); og.connect(master);
+    o.start(tt); o.stop(tt + 0.42);
+  }
+  function grunt(dur, f0) {
+    if (!soundOn || !ac) return;
+    var tt = ac.currentTime;
+    var o1 = ac.createOscillator(), o2 = ac.createOscillator(), lfo = ac.createOscillator(), lg = ac.createGain();
+    var g = ac.createGain(), lp = ac.createBiquadFilter();
+    o1.type = 'sawtooth'; o2.type = 'square';
+    o1.frequency.setValueAtTime(f0, tt);
+    o1.frequency.exponentialRampToValueAtTime(f0 * 0.62, tt + dur);
+    o2.frequency.setValueAtTime(f0 * 1.5, tt);
+    o2.frequency.exponentialRampToValueAtTime(f0 * 0.93, tt + dur);
+    lfo.frequency.value = 17; lg.gain.value = f0 * 0.07;
+    lfo.connect(lg); lg.connect(o1.frequency);
+    lp.type = 'lowpass'; lp.Q.value = 3;
+    lp.frequency.setValueAtTime(700, tt);
+    lp.frequency.exponentialRampToValueAtTime(240, tt + dur);
+    var g2 = ac.createGain(); g2.gain.value = 0.3;
+    g.gain.setValueAtTime(0.0001, tt);
+    g.gain.exponentialRampToValueAtTime(0.9, tt + 0.08);
+    g.gain.setValueAtTime(0.9, tt + dur * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, tt + dur);
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    o1.start(tt); o2.start(tt); lfo.start(tt);
+    o1.stop(tt + dur + 0.05); o2.stop(tt + dur + 0.05); lfo.stop(tt + dur + 0.05);
+  }
+
+  /* jadwal bunyi (detik pada garis waktu animasi) */
+  var events = [];
+  for (var k = 1; k <= 4; k++) events.push({ at: 0.6 + k * 0.62, fn: function () { thud(0.45); } });
+  events.push({ at: 3.25, fn: snort });
+  events.push({ at: 3.6, fn: snort });
+  events.push({ at: 3.85, fn: function () { grunt(1.0, 105); } });
+  for (var j = 0; j < 6; j++) events.push({ at: 3.95 + j * 0.17, fn: function () { thud(0.9); } });
+  events.push({ at: 4.95, fn: snort });
+  events.push({ at: 5.2, fn: function () { grunt(0.35, 85); } });
+  events.sort(function (a, b) { return a.at - b.at; });
+
+  /* ---------- animasi ---------- */
+  function smooth(s) { return s * s * (3 - 2 * s); }
+  function pose(tt) {
+    var x, mode = 'walk', headDeg = 0, shake = 0, speed = 0, label;
+    if (tt < 3.2) {
+      x = x0 + (xs - x0) * smooth(tt / 3.2); label = 'Badak sedang berjalan'; speed = 4;
+    } else if (tt < 3.8) {
+      var s = (tt - 3.2) / 0.6; x = xs; mode = 'stand';
+      headDeg = 14 * Math.sin(Math.min(1, s * 1.4) * Math.PI / 2);
+      shake = (tt > 3.25 && tt < 3.5) || (tt > 3.6 && tt < 3.8) ? Math.sin(tt * 90) * 1.6 : 0;
+      label = 'Badak mendengus'; speed = 0;
+    } else if (tt < 4.8) {
+      var c = (tt - 3.8) / 1.0; x = xs + (xe - xs) * (c * c * (1.6 - 0.6 * c));
+      mode = 'charge'; headDeg = 16; label = 'Badak menyeruduk!'; speed = Math.round(10 + 32 * Math.min(1, c * 1.6));
+    } else {
+      var r = (tt - 4.8) / 0.8; x = xe; mode = 'stand'; headDeg = 16 * (1 - smooth(Math.min(1, r)));
+      label = 'Badak berhenti'; speed = 0;
+    }
+    return { x: x, mode: mode, headDeg: headDeg, shake: shake, speed: speed, label: label };
+  }
+  function render(tt) {
+    var p = pose(tt);
+    runner.style.transform = 'translate(' + (p.x + p.shake).toFixed(1) + 'px,0)';
+    shadow.style.transform = 'translateX(' + (p.x + rw * 0.1).toFixed(1) + 'px)';
+    head.style.transform = 'rotate(' + p.headDeg.toFixed(1) + 'deg)';
+    runner.classList.toggle('walk', p.mode === 'walk');
+    runner.classList.toggle('charge', p.mode === 'charge');
+    /* debu */
+    for (var i = 0; i < dusts.length; i++) {
+      var d = dusts[i];
+      if (p.mode === 'charge') {
+        var ph = ((tt * 3 + i / dusts.length) % 1);
+        d.style.opacity = (0.55 * (1 - ph)).toFixed(2);
+        d.style.transform = 'translate(' + (p.x + rw * 0.1 - ph * 90 - i * 18).toFixed(1) + 'px,' + (-ph * 14).toFixed(1) + 'px) scale(' + (0.6 + ph * 1.6).toFixed(2) + ')';
+      } else d.style.opacity = 0;
+    }
+    if (statusEl.textContent !== p.label) statusEl.textContent = p.label;
+    prog.style.width = (Math.min(tt, T) / T * 100).toFixed(1) + '%';
+    rtime.textContent = Math.min(tt, T).toFixed(1) + ' dtk';
+    rspeed.textContent = p.speed + ' km/jam';
+  }
+  function fireEvents(prev, now) {
+    for (var i = 0; i < events.length; i++) {
+      if (events[i].at > prev && events[i].at <= now) events[i].fn();
+    }
+  }
+  function frame(ts) {
+    if (last === null) last = ts;
+    var dt = Math.min(0.05, (ts - last) / 1000);
+    last = ts;
+    if (playing) {
+      if (t < T) {
+        var prev = t;
+        t = Math.min(T, t + dt);
+        fireEvents(prev, t);
+        if (t >= T) restartAt = loop ? 1.0 : null;
+      } else if (restartAt !== null) {
+        restartAt -= dt;
+        if (restartAt <= 0) { restartAt = null; t = 0; }
+      }
+    }
+    render(t);
+    requestAnimationFrame(frame);
+  }
+
+  function setPlaying(v) {
+    playing = v;
+    runner.classList.toggle('paused', !v);
+    bPause.textContent = v ? 'Jeda' : 'Lanjutkan';
+  }
+  function replay() { t = 0; restartAt = null; setPlaying(true); }
+  function setSound(v) {
+    if (v && !ensureAudio()) { bSound.textContent = 'Suara tidak didukung'; return; }
+    soundOn = v;
+    bSound.textContent = v ? 'Matikan suara' : 'Aktifkan suara';
+    bSound.classList.toggle('on', v);
+  }
+
+  bSound.addEventListener('click', function (e) { e.stopPropagation(); setSound(!soundOn); if (soundOn) snort(); });
+  document.getElementById('bReplay').addEventListener('click', function (e) { e.stopPropagation(); replay(); });
+  bPause.addEventListener('click', function (e) { e.stopPropagation(); setPlaying(!playing); });
+  bLoop.addEventListener('click', function (e) {
+    e.stopPropagation(); loop = !loop;
+    bLoop.classList.toggle('on', loop); bLoop.setAttribute('aria-pressed', loop ? 'true' : 'false');
+    if (loop && t >= T && playing) restartAt = 1.0;
+  });
+  volume.addEventListener('input', function () { if (master) master.gain.value = volume.value / 100 * 0.7; });
+  stage.addEventListener('click', function () {
+    if (!soundOn) setSound(true);
+    replay();
+  });
+
+  window.addEventListener('resize', layout);
+  layout();
+  render(0);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
